@@ -20,5 +20,8 @@ func registerRoutes(cfg *config.AppConfig) http.Handler {
 	mux.Get("/", handlers.Repo.Home)
 	mux.Get("/about", handlers.Repo.About)
 
+	fileServer := http.FileServer(http.Dir("./src/static/"))
+	mux.Handle("/src/static/*", http.StripPrefix("/src/static", fileServer))
+
 	return mux
 }
