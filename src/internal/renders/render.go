@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/cerande/go-reservation-app/src/internal/config"
 	"github.com/cerande/go-reservation-app/src/models"
-	"github.com/cerande/go-reservation-app/src/pkg/config"
+	"github.com/justinas/nosurf"
 )
 
 var app *config.AppConfig
@@ -17,7 +18,12 @@ func NewTemplate(config *config.AppConfig) {
 	app = config
 }
 
-func RenderTemplate(wr http.ResponseWriter, tmplName string, td *models.TemplateData) {
+func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
+	return td
+}
+
+func RenderTemplate(req *http.Request, wr http.ResponseWriter, tmplName string, td *models.TemplateData) {
 
 	var tc map[string]*template.Template
 	if app.UseCache {
@@ -32,6 +38,9 @@ func RenderTemplate(wr http.ResponseWriter, tmplName string, td *models.Template
 	}
 
 	buf := new(bytes.Buffer)
+
+	td = AddDefaultData(td, req)
+
 	err := t.Execute(buf, td)
 	if err != nil {
 		log.Fatal(err)
